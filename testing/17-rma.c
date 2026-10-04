@@ -15,8 +15,10 @@ main (int argc, char **argv)
   MPI_Request req;
   MPI_Info info;
   char *base, *result;
+  int *base_int, *result_int;
+  int rma_count;
   int rank, size, target_rank, target_disp = 0;
-  int r, errlen;
+  int i, r, errlen;
   char errmsg[MPI_MAX_ERROR_STRING];
 
   /*************************************************************/
@@ -40,6 +42,15 @@ main (int argc, char **argv)
     {
       printf ("failed to alloc result %d\n", WIN_SIZE);
       exit (16);
+    }
+
+  base_int = (int *) base;
+  result_int = (int *) result;
+  rma_count = WIN_SIZE / (int) sizeof (*base_int);
+  for (i = 0; i < rma_count; i++)
+    {
+      base_int[i] = rank;
+      result_int[i] = 0;
     }
 
   /*************************************************************/
@@ -75,15 +86,15 @@ main (int argc, char **argv)
     printf ("Rank %d failed MPI_Get\n", rank);
 
   r =
-    MPI_Accumulate (base, WIN_SIZE, MPI_BYTE, target_rank, target_disp,
-		    WIN_SIZE, MPI_BYTE, MPI_SUM, win);
+    MPI_Accumulate (base_int, rma_count, MPI_INT, target_rank, target_disp,
+		    rma_count, MPI_INT, MPI_SUM, win);
   if (MPI_SUCCESS TEST_OP r)
     printf ("Rank %d failed MPI_Accumulate\n", rank);
 
   r =
-    MPI_Get_accumulate (base, WIN_SIZE, MPI_BYTE, result, WIN_SIZE, MPI_BYTE,
-			target_rank, target_disp, WIN_SIZE, MPI_BYTE, MPI_SUM,
-			win);
+    MPI_Get_accumulate (base_int, rma_count, MPI_INT, result_int, rma_count,
+			MPI_INT, target_rank, target_disp, rma_count, MPI_INT,
+			MPI_SUM, win);
   if (MPI_SUCCESS TEST_OP r)
     printf ("Rank %d failed MPI_Get_accumulate\n", rank);
 
@@ -177,9 +188,13 @@ main (int argc, char **argv)
   fprintf(stderr, "Third epoch : rank %d\n", rank);
 
   r =
-    MPI_Win_allocate (win_size, 1, MPI_INFO_NULL, MPI_COMM_WORLD, base, &win);
+    MPI_Win_allocate (win_size, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &base, &win);
   if (MPI_SUCCESS TEST_OP r)
     printf ("Rank %d failed MPI_Win_allocate\n", rank);
+
+  base_int = (int *) base;
+  for (i = 0; i < rma_count; i++)
+    base_int[i] = rank;
 
   r = MPI_Win_get_info (win, &info);
   if (MPI_SUCCESS TEST_OP r)
@@ -189,45 +204,29 @@ main (int argc, char **argv)
   if (MPI_SUCCESS TEST_OP r)
     printf ("Rank %d failed MPI_Win_set_info\n", rank);
 
-  r = MPI_Win_free (&win);
-  if (MPI_SUCCESS TEST_OP r)
-    printf ("Rank %d failed MPI_Win_free\n", rank);
-
-  if ( 0 == rank )
-  {
-      r =
-          MPI_Win_create(NULL,0,1, MPI_INFO_NULL,MPI_COMM_WORLD,&win);
-      if (MPI_SUCCESS TEST_OP r)
-          printf ("Rank %d failed MPI_Win_create\n", rank);
-  }
-  else
-  {
-      r =
-          MPI_Win_create (base, win_size, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &win);
-      if (MPI_SUCCESS TEST_OP r)
-          printf ("Rank %d failed MPI_Win_create\n", rank);
-  }
-
-
-  if ( 0 == rank )
-  {
+  if (0 == rank)
+    {
       r = MPI_Win_lock (MPI_LOCK_SHARED, target_rank, 0, win);
       if (MPI_SUCCESS TEST_OP r)
           printf ("Rank %d failed MPI_Win_lock\n", rank);
 
       r = MPI_Rput (base, WIN_SIZE, MPI_BYTE, target_rank, target_disp,
-              WIN_SIZE, MPI_BYTE, win, &req);
+		    WIN_SIZE, MPI_BYTE, win, &req);
       if (MPI_SUCCESS TEST_OP r)
           printf ("Rank %d failed MPI_Put\n", rank);
+
+      r = MPI_Wait (&req, MPI_STATUS_IGNORE);
+      if (MPI_SUCCESS TEST_OP r)
+          printf ("Rank %d failed MPI_Wait\n", rank);
 
       r = MPI_Win_unlock (target_rank, win);
       if (MPI_SUCCESS TEST_OP r)
           printf ("Rank %d failed MPI_Win_unlock\n", rank);
-  }
+    }
 
-  r = MPI_Win_fence (0, win);
+  r = MPI_Barrier (MPI_COMM_WORLD);
   if (MPI_SUCCESS TEST_OP r)
-      printf ("Rank %d failed MPI_Win_fence\n", rank);
+      printf ("Rank %d failed MPI_Barrier\n", rank);
 
   r = MPI_Win_free (&win);
   if (MPI_SUCCESS TEST_OP r)
