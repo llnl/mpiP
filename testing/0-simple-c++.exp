@@ -18,6 +18,12 @@ case "$launch" in {
         set pre_procs "-n2"
         set post_procs ""
     }
+    { "flux" } {
+        set pre_args "run -n"
+        set pre_procs $procs
+        set post_args ""
+        set post_procs ""
+    }
     { "mpirun" } { 
         set pre_args "-np"
         set pre_procs $procs 

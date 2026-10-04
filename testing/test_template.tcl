@@ -61,6 +61,13 @@ proc runTest { } {
         send_user "$launch $pre_args $pre_procs $test_targ $test_args\n"
         spawn -noecho $launch $pre_args $pre_procs $test_targ {*}$test_args    
       }
+      { "flux" } {
+        set pre_args "run"
+        set pre_procs "-n $procs"
+        set command "$launch $pre_args $pre_procs $test_targ $test_args"
+        send_user "${command} \n"
+        spawn -noecho {*}${command}
+      }
       { "mpirun" } { 
         set pre_args "-np"
         set pre_procs $procs
