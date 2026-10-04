@@ -12,7 +12,11 @@ include ../Defs.mak
 #  Specify compile flags to ensure debugging symbols and no optimization
 CFLAGS	= -g
 FFLAGS  = -g
+ifeq ($(F77_VENDOR),GNU)
+FFLAGS  += -fallow-argument-mismatch
+endif
 LDFLAGS	+= -L..
+LDFLAGS	+= -Wl,-rpath,'$$ORIGIN/..'
 CXXLIBS	:= -l$(MPIPCXXLIB) $(LIBS) $(CXXLIBS)
 FLIBS	:= -l$(MPIPFLIB) $(LIBS)
 LIBS	:= -lmpiP $(LIBS)
