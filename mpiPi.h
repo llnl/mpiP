@@ -96,6 +96,7 @@ typedef struct _mpiPi_fortran_t {
   size_t bottom;
   size_t status_ignore;
   size_t statuses_ignore;
+  size_t status_size;
 } mpiPi_fortran_t;
 
 extern mpiPi_lookup_t mpiPi_lookup[];
@@ -124,6 +125,7 @@ typedef struct SO_INFO
   size_t offset;
   char *fpath;
   bfd *bfd;
+  asymbol **syms;
 } so_info_t;
 #endif
 

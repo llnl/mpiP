@@ -480,18 +480,53 @@ SOURCE_LOOKUP=none
 
 if test "x$ENABLE_BFD" = "xyes" ; then
   BFD_AUX_LIBS=
+  BFD_CPPFLAGS=
+  BFD_LDFLAGS=
+  BFD_LIB_FILE=
+  BFD_INCLUDE_DIR=
   AC_SEARCH_LIBS([dlopen], [dl dld]) # newer versions of binutils have a libdl dependency
   AC_CHECK_LIB(z,inflate, BFD_AUX_LIBS="$BFD_AUX_LIBS -lz")  # newer versions of binutils have a zlib dependency
   AC_CHECK_LIB(intl,dcgettext__, BFD_AUX_LIBS="$BFD_AUX_LIBS -lintl")  #libintl required only on some platforms, eg AIX
   AC_CHECK_LIB(iberty,objalloc_create, BFD_AUX_LIBS="$BFD_AUX_LIBS -liberty")
+
+  AC_MSG_CHECKING([for libbfd path])
+  BFD_LIB_FILE=`$CC -print-file-name=libbfd.a 2>/dev/null`
+  if test "x$BFD_LIB_FILE" = "xlibbfd.a" || test ! -f "$BFD_LIB_FILE" ; then
+    BFD_LIB_FILE=`$CC -print-file-name=libbfd.so 2>/dev/null`
+  fi
+  if test "x$BFD_LIB_FILE" = "xlibbfd.so" || test ! -f "$BFD_LIB_FILE" ; then
+    BFD_LIB_FILE=
+    AC_MSG_RESULT([not found via compiler wrapper])
+  else
+    AC_MSG_RESULT([$BFD_LIB_FILE])
+    BFD_LIB_DIR=`dirname "$BFD_LIB_FILE"`
+    BFD_INCLUDE_DIR=`dirname "$BFD_LIB_DIR"`/include
+    if test -f "$BFD_INCLUDE_DIR/bfd.h" ; then
+      BFD_CPPFLAGS="-I$BFD_INCLUDE_DIR"
+      BFD_LDFLAGS="-L$BFD_LIB_DIR"
+      AC_MSG_NOTICE([using bfd.h from $BFD_INCLUDE_DIR])
+    else
+      BFD_INCLUDE_DIR=
+    fi
+  fi
+
+  mpip_save_CPPFLAGS="$CPPFLAGS"
+  mpip_save_LDFLAGS="$LDFLAGS"
+  CPPFLAGS="$BFD_CPPFLAGS $CPPFLAGS"
+  LDFLAGS="$BFD_LDFLAGS $LDFLAGS"
+
   AC_CHECK_HEADER(bfd.h,
     AC_CHECK_LIB(bfd,bfd_openr, LIBS="$LIBS -lbfd", ENABLE_BFD=no, $BFD_AUX_LIBS)
-    AC_CHECK_DECL(bfd_get_section_size, AC_DEFINE([HAVE_BFD_GET_SECTION_SIZE], [1], [BFD get section size]), ,[#include "bfd.h"]) 
+    AC_CHECK_DECL(bfd_get_section_size, AC_DEFINE([HAVE_BFD_GET_SECTION_SIZE], [1], [BFD get section size]), ,[#include "bfd.h"])
     AC_CHECK_DECL(bfd_get_section_vma, AC_DEFINE(HAVE_BFD_GET_SECTION_MACROS, [1], [BFD get section macros]), ,[#include "bfd.h"])
     , ENABLE_BFD=no SO_LOOKUP=no
   )
   AC_CHECK_TYPE(bfd_boolean, ,AC_DEFINE([HAVE_BFD_BOOLEAN], [1], [BFD booleans]), [#include "bfd.h"])
+  CPPFLAGS="$mpip_save_CPPFLAGS"
+  LDFLAGS="$mpip_save_LDFLAGS"
   if test "x$ENABLE_BFD" = "xyes" ; then
+    CPPFLAGS="$BFD_CPPFLAGS $CPPFLAGS"
+    LDFLAGS="$BFD_LDFLAGS $LDFLAGS"
     AC_CHECK_HEADER(demangle.h, [AC_DEFINE([HAVE_DEMANGLE_H], [1], [Have demangling]) if test "x$DO_DEMANGLE" = xfalse ; then DO_DEMANGLE=GNU ; fi])
     LIBS="$LIBS $BFD_AUX_LIBS"
     AC_DEFINE([ENABLE_BFD], [1], [Enable BFD library for the PC to source lookups])

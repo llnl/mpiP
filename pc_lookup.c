@@ -36,13 +36,14 @@ static char *svnid = "$Id$";
 #include <search.h>
 #endif
 #endif
-static asymbol **syms;
+static asymbol **abfd_syms;
+static asymbol **current_syms;
 static bfd_vma pc;
 static const char *filename;
 static const char *functionname;
 static unsigned int line;
 static bfd *abfd = NULL;
-static bfd *open_bfd_object (char *filename);
+static bfd *open_bfd_object (char *filename, asymbol ***syms_out);
 
 /*  BFD boolean and bfd_boolean types have changed through versions.
     It looks like bfd_boolean will be preferred.                     */
@@ -120,15 +121,14 @@ mpiPdemangle (const char *mangledSym)
 #endif
 
 static void
-find_address_in_section (abfd, section, data)
-     bfd *abfd;
-     asection *section;
-     PTR data;
+find_address_in_section (bfd *abfd, asection *section, PTR data)
 {
   bfd_vma vma;
   bfd_size_type size;
   bfd_vma local_pc = pc;
   char addr_buf1[24], addr_buf2[24], addr_buf3[24];
+
+  (void) data;
 
   assert (abfd);
   if (found)
@@ -204,7 +204,7 @@ find_address_in_section (abfd, section, data)
   else
     size = bfd_get_section_size_before_reloc (section);
 #else
-  size = bfd_section_size(section);
+  size = bfd_section_size (section);
 #endif
 
   if (local_pc >= vma + size)
@@ -221,7 +221,7 @@ find_address_in_section (abfd, section, data)
   }
 
 
-  found = bfd_find_nearest_line (abfd, section, syms, local_pc - vma,
+  found = bfd_find_nearest_line (abfd, section, current_syms, local_pc - vma,
                                  &filename, &functionname, &line);
 
   if (!found && mpiPi_debug == 1)
@@ -399,6 +399,7 @@ mpiPi_parse_maps ()
       cso->offset = offset;
       cso->fpath = strdup (fpath);
       cso->bfd = NULL;
+      cso->syms = NULL;
       if (tsearch (cso, (void **) &(mpiPi.so_info), mpiPi_so_info_compare) !=
           NULL)
         mpiPi.so_count++;
@@ -444,6 +445,7 @@ mpiP_find_src_loc (void *i_addr_hex, char **o_file_str, int *o_lineno,
   pc = bfd_scan_vma (buf, NULL, 16);
 
   found = FALSE;
+  current_syms = abfd_syms;
 
   bfd_map_over_sections (abfd, find_address_in_section, (PTR) NULL);
 
@@ -475,7 +477,9 @@ mpiP_find_src_loc (void *i_addr_hex, char **o_file_str, int *o_lineno,
           if (fso->bfd == NULL)
             {
               mpiPi_msg_debug ("opening SO filename %s\n", fso->fpath);
-              fso->bfd = (bfd *) open_bfd_object (fso->fpath);
+              fso->bfd = (bfd *) open_bfd_object (fso->fpath, &(fso->syms));
+              if (fso->bfd == NULL)
+                return 1;
             }
 
           pc = (((char *) i_addr_hex - (char *) fso->lvma) + fso->offset);
@@ -483,6 +487,7 @@ mpiP_find_src_loc (void *i_addr_hex, char **o_file_str, int *o_lineno,
               ("Calling bfd_map_over_sections with new bfd for %p\n", pc);
 
           found = FALSE;
+          current_syms = fso->syms;
 
           mpiPi_msg_debug ("fso->bfd->sections is %p\n",
                            ((bfd *) (fso->bfd))->sections);
@@ -543,15 +548,15 @@ mpiP_find_src_loc (void *i_addr_hex, char **o_file_str, int *o_lineno,
 
 
 static bfd *
-open_bfd_object (char *filename)
+open_bfd_object (char *filename, asymbol ***syms_out)
 {
   char *target = NULL;
   char **matching = NULL;
   long storage;
   long symcount;
-  unsigned int size;
   static int bfd_initialized = 0;
   bfd *new_bfd;
+  asymbol **new_syms = NULL;
 
   if (filename == NULL)
     {
@@ -604,32 +609,48 @@ open_bfd_object (char *filename)
       return NULL;
     }
 
-  if ((bfd_get_file_flags (new_bfd) & HAS_SYMS) == 0)
-    {
-      mpiPi_msg_warn ("No symbols in the executable\n");
-      bfd_close (new_bfd);
-      return NULL;
-    }
-
-  /* TODO: move this to the begining of the process so that the user
-     knows before the application begins */
   storage = bfd_get_symtab_upper_bound (new_bfd);
-  if (storage < 0)
+  if (storage > 0)
     {
-      mpiPi_msg_warn ("storage < 0");
-      bfd_close (new_bfd);
-      return NULL;
+      new_syms = (asymbol **) malloc (storage);
+      if (new_syms == NULL)
+        {
+          mpiPi_msg_warn ("failed to allocate symbol table storage");
+          bfd_close (new_bfd);
+          return NULL;
+        }
+      symcount = bfd_canonicalize_symtab (new_bfd, new_syms);
+    }
+  else
+    symcount = storage;
+
+  if (symcount <= 0)
+    {
+      free (new_syms);
+      new_syms = NULL;
+
+      storage = bfd_get_dynamic_symtab_upper_bound (new_bfd);
+      if (storage > 0)
+        {
+          new_syms = (asymbol **) malloc (storage);
+          if (new_syms == NULL)
+            {
+              mpiPi_msg_warn ("failed to allocate dynamic symbol storage");
+              bfd_close (new_bfd);
+              return NULL;
+            }
+          symcount = bfd_canonicalize_dynamic_symtab (new_bfd, new_syms);
+        }
+      else
+        symcount = storage;
     }
 
-  symcount = bfd_read_minisymbols (new_bfd, FALSE, (void *) &syms, &size);
-  if (symcount == 0)
-    symcount =
-        bfd_read_minisymbols (new_bfd, TRUE /* dynamic */ , (void *) &syms,
-                              &size);
-
-  if (symcount < 0)
+  if (symcount <= 0)
     {
-      mpiPi_msg_warn ("symcount < 0");
+      if (symcount < 0)
+        mpiPi_msg_warn ("symcount < 0");
+      else
+        mpiPi_msg_warn ("No symbols in the executable\n");
       bfd_close (new_bfd);
       return NULL;
     }
@@ -639,13 +660,16 @@ open_bfd_object (char *filename)
       mpiPi_msg_debug ("found %d symbols in file [%s]\n", symcount, filename);
     }
 
+  if (syms_out != NULL)
+    *syms_out = new_syms;
+
   return new_bfd;
 }
 
 int
 open_bfd_executable (char *filename)
 {
-  abfd = open_bfd_object (filename);
+  abfd = open_bfd_object (filename, &abfd_syms);
   if (abfd == NULL)
     return 0;
   else
@@ -662,8 +686,13 @@ close_bfd_object (bfd * close_bfd)
 void
 close_bfd_executable ()
 {
-  assert (abfd);
+  if (abfd == NULL)
+    return;
+  if (abfd_syms != NULL)
+    free (abfd_syms);
   bfd_close (abfd);
+  abfd = NULL;
+  abfd_syms = NULL;
 }
 
 #elif !defined(USE_LIBDWARF)
