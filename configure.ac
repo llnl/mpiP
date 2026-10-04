@@ -571,6 +571,21 @@ AC_COMPILE_IFELSE(
     ],
     AC_DEFINE([USE_MPI3_CONSTS],[1],[Use MPI v3 constructions]))
 
+AC_PATH_PROG([MPICHVERSION], [mpichversion])
+if test -n "$MPICHVERSION" ; then
+  AC_MSG_CHECKING([whether MPICH requires -lmpifort])
+  mpich_major_version=`$MPICHVERSION 2>/dev/null | grep -i 'version:' | head -n 1 | cut -d: -f2 | cut -d. -f1 | sed 's/^ *//'`
+  if test -n "$mpich_major_version" && test "$mpich_major_version" -lt 3 ; then
+    case " $LIBS " in
+      *" -lmpifort "*) AC_MSG_RESULT([no, already present]) ;;
+      *) LIBS="$LIBS -lmpifort"
+         AC_MSG_RESULT([yes]) ;;
+    esac
+  else
+    AC_MSG_RESULT([no])
+  fi
+fi
+
 
 #
 #  Find an appropriate timer function
@@ -813,7 +828,7 @@ if test -n "$F77" -a "$F77" != no ; then
     AC_MSG_ERROR([giving up])
   fi
   echo "extern void f_fun_(void);" > flink.c
-  echo "main(){ FF(); return 0; }" >> flink.c
+  echo "int main(void){ FF(); return 0; }" >> flink.c
   if $CC -o flink -DFF=f_fun flink.c ffunc.o $LDFLAGS $LIBS 1>/dev/null 2>/dev/null; then
     AC_MSG_RESULT(same as C)
     F77_SYMBOLS=symbol
@@ -869,7 +884,7 @@ elif test "x$G77" = xyes ; then
   FORTRAN_FLAG=-DGNU_Fortran
   FORTRAN_TARGET=libmpiPg77.a
   MPIPFLIB=mpiPg77
-elif $F77 -v 2>&1 | grep -e gcc 1> /dev/null 2> /dev/null ; then
+elif $F77 --version 2>&1 | grep -e 'GNU Fortran' -e gfortran 1> /dev/null 2> /dev/null ; then
   F77_VENDOR=GNU
   FORTRAN_FLAG=-DGNU_Fortran
   FORTRAN_TARGET=libmpiPg77.a

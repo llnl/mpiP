@@ -1043,7 +1043,7 @@ def ReadInputFile(f):
         if not rawline:
             break
         cnt = cnt + 1
-        line = re.sub("\@.*$","",rawline)
+        line = re.sub(r"@.*$", "", rawline)
 
         ##### break it into tokens
         tokens = line.split()
@@ -1662,7 +1662,7 @@ def CreateWrapper(funct, olist):
         olist.append("\nif ((size_t)array_of_statuses == mpiPi_fortran.statuses_ignore)\n")
         olist.append("  c_array_of_statuses = MPI_STATUSES_IGNORE;\n")
         olist.append("else {\n")
-        olist.append("  c_array_of_statuses = (MPI_Status *) malloc(sizeof(MPI_Status) * (*count));\n")
+        olist.append("  c_array_of_statuses = (MPI_Status *) malloc(sizeof(MPI_Status) * (*" + countVar + "));\n")
         olist.append("  if (c_array_of_statuses == NULL)\n")
         olist.append("    mpiPi_abort(\"Failed to allocate memory in " + funct + "\");\n")
         olist.append("}\n")
@@ -1732,7 +1732,11 @@ def CreateWrapper(funct, olist):
                 if ( xlateVarName.count("array_of_statuses") > 0 ):
                     xlateCode.append("{\n  int j; \n")
                     xlateCode.append("\n  if ( (size_t)" + xlateVarName + " != mpiPi_fortran.statuses_ignore ) {\n")
-                    xlateCode.append("  rc = " + xlateFuncType + "_c2f(&c_" + xlateVarName + "[j], &" + xlateVarName + "[j]);\n")
+                    xlateCode.append("  for (j = 0; j < *count; j++) {\n")
+                    xlateCode.append("    rc = " + xlateFuncType + "_c2f(&c_" + xlateVarName + "[j], &" + xlateVarName + "[j * mpiPi_fortran.status_size]);\n")
+                    xlateCode.append("    if (rc != MPI_SUCCESS)\n")
+                    xlateCode.append("      break;\n")
+                    xlateCode.append("  }\n")
                     xlateCode.append("  free(c_" + xlateVarName + ");\n")
                     xlateCode.append("  }\n}\n\n")
                 else:

@@ -161,7 +161,8 @@ mpiPi_init (char *appName, mpiPi_thr_mode_t thr_mode)
    *    and MPI_STATUSES_IGNORE when profiling Fortran code
    */
   fortran_vars(&mpiPi_fortran.in_place, &mpiPi_fortran.bottom, 
-               &mpiPi_fortran.status_ignore, &mpiPi_fortran.statuses_ignore);
+               &mpiPi_fortran.status_ignore, &mpiPi_fortran.statuses_ignore,
+               &mpiPi_fortran.status_size);
 
   /* -- welcome msg only collector  */
   if (mpiPi.collectorRank == mpiPi.rank)

@@ -68,7 +68,7 @@ extern void mpiPi_update_collective_stats (mpiPi_mt_stat_tls_t *tls, int op, dou
                                            MPI_Comm * comm);
 extern void mpiPi_update_pt2pt_stats (mpiPi_mt_stat_tls_t *tls, int op, double dur, double size,
                                       MPI_Comm * comm);
-extern void fortran_vars (size_t *, size_t *, size_t *, size_t *);
+extern void fortran_vars (size_t *, size_t *, size_t *, size_t *, size_t *);
 
 #ifdef NEED_MREAD_REAL_TIME_DECL
 #include <sys/systemcfg.h>
