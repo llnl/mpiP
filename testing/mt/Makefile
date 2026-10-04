@@ -11,6 +11,7 @@ EXE_SRCS =  01_mt_send-recv_b.c     \
 EXES = ${EXE_SRCS:.c=.exe}
 
 LIBS += -lpthread -L../.. -lmpiP
+LDFLAGS += -Wl,-rpath,'$$ORIGIN/../..'
 
 .PHONY: all
 all: ${EXES}
@@ -23,4 +24,3 @@ mt_common.o : mt_common.c $(HEADERS)
 
 clean::
 	rm -f ${EXES} *.o *.mpiP
-

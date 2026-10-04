@@ -310,6 +310,7 @@ void* _mt_common_proxy_thread(void *id_ptr)
 {
   test_thr_data_t *tdata = (test_thr_data_t*)id_ptr;
   tdata->fptr(tdata->tid);
+  return NULL;
 }
 
 void mt_common_exec(mt_common_thrptr_t *workers)

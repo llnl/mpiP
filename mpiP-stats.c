@@ -139,7 +139,7 @@ void mpiPi_stats_thr_reset_all(mpiPi_thread_stat_t *s)
   /* Reset callsite statistics */
   mpiPi_stats_thr_cs_reset(s);
   bzero(s->coll.time_stats, sizeof(s->coll.time_stats));
-  (s->pt2pt.time_stats, sizeof(s->pt2pt.time_stats));
+  bzero(s->pt2pt.time_stats, sizeof(s->pt2pt.time_stats));
   s->cum_time = 0;
 }
 
