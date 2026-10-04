@@ -1,4 +1,1 @@
-
-set launch prun
-set args {-n 2 -ppdebug }
-
+# The launcher is set by configure in site.exp.

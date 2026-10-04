@@ -32,6 +32,8 @@ Please see the ChangeLog for additional changes.
 ### Configuration
 Several specific configuration flags can be using, as provided by ```./configure -h```.
 Standard configure flags, such as CC, can be used for specifying MPI compiler wrapper scripts.
+Tests use Slurm's `srun` when it is available. Use `./configure --with-launch=flux`
+to run the test suite with Flux instead.
 
 ### Build Make Targets
 |Target|Effect|
