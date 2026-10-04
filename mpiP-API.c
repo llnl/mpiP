@@ -79,11 +79,13 @@ mpiP_open_executable (char *filename)
 
 #ifdef ENABLE_BFD
 
-  open_bfd_executable (filename);
+  if (open_bfd_executable (filename) == 0)
+    return -1;
 
 #elif defined(USE_LIBDWARF)
 
-  open_dwarf_executable (filename);
+  if (open_dwarf_executable (filename) == 0)
+    return -1;
 
 #endif
 

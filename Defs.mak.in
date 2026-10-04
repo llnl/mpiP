@@ -39,11 +39,9 @@ CANONICAL_TARGET    = @target@
 TARGET_OS           = @target_os@
 TARGET_CPU          = @target_cpu@
 
+CPPFLAGS    = -I$(srcdir) @CPPFLAGS@
 ifneq ( $(srcdir), "." )
 CPPFLAGS   += -I.
-endif
-ifdef ${srcdir}
-CPPFLAGS    = -I$(srcdir) @CPPFLAGS@
 endif
 
 # check if we're *really* cross-compiling

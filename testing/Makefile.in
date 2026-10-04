@@ -36,6 +36,8 @@ CSRCS =	0-simple.c \
 	15-pcontrol.c \
 	18-coll-non-block.c
 
+NONMPI_CSRCS = stacktrace-src-lookup.c
+
 ifeq (${include_mpi_io_tests},yes)
 CSRCS += 14-mpiio.c
 endif
@@ -49,6 +51,7 @@ FSRCS =	0-simplef.f sweep-ops.f sweep-ops-stack.f 16-waitallf.f
 TEXES = $(CSRCS:.c=.exe)
 EXES = $(TEXES:.C=.exe)
 EXES += $(FSRCS:.f=.exe)
+EXES += $(NONMPI_CSRCS:.c=.exe)
 
 all: ${EXES}
 	make -C mt
@@ -64,6 +67,12 @@ all: ${EXES}
 
 .f.exe:
 	${FC} ${FFLAGS} ${CPPFLAGS} $< ${ADD_OBJS} -o $@ ${LDFLAGS} ${FLIBS}
+
+stacktrace-src-lookup.exe: CFLAGS += -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls
+stacktrace-src-lookup.exe: LDFLAGS += -rdynamic
+
+check-source-lookup: stacktrace-src-lookup.exe
+	./stacktrace-src-lookup.exe
 
 clean::
 	rm -f ${EXES} *.mpiP *.o
