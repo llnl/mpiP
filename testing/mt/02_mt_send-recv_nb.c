@@ -13,6 +13,7 @@ void send_nb(int tid)
   int i, j, count = mt_common_iter();
   double start;
   MPI_Request req[TEST_WIN];
+  MPI_Status statuses[TEST_WIN];
 
   mt_common_sync();
 
@@ -29,7 +30,7 @@ void send_nb(int tid)
       mt_common_stat_append(tid, TEST_MPI_ISEND, j, GET_TS() - start);
 
       start = GET_TS();
-      MPI_Waitall(j, req, MPI_STATUSES_IGNORE);
+      MPI_Waitall(j, req, statuses);
       mt_common_stat_append(tid, TEST_MPI_WAITALL, 1, GET_TS() - start);
     }
 
@@ -43,6 +44,7 @@ void recv_nb(int tid)
   int i, j, count = mt_common_iter();
   double start;
   MPI_Request req[TEST_WIN];
+  MPI_Status statuses[TEST_WIN];
 
   mt_common_sync();
 
@@ -59,7 +61,7 @@ void recv_nb(int tid)
       mt_common_stat_append(tid, TEST_MPI_IRECV, j, GET_TS() - start);
 
       start = GET_TS();
-      MPI_Waitall(j, req, MPI_STATUSES_IGNORE);
+      MPI_Waitall(j, req, statuses);
       mt_common_stat_append(tid, TEST_MPI_WAITALL, 1, GET_TS() - start);
     }
 
