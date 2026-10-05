@@ -331,7 +331,7 @@ kbd {
 
 <body>
 
-<h1 id="toc_0">mpiP 3.5</h1>
+<h1 id="toc_0">mpiP 3.6</h1>
 
 <p>A light-weight MPI profiler.</p>
 
@@ -345,21 +345,52 @@ kbd {
 
 <h2 id="toc_3">New Features &amp; Bug Fixes</h2>
 
-<p>Version 3.5 includes several new features, including</p>
+<p>Version 3.6 includes the following changes since version 3.5.</p>
+
+<h3>MPI coverage</h3>
 
 <ul>
-<li>Multi-threaded support</li>
-<li>Additional MPI-IO functions</li>
-<li>Various updates including
-
-<ul>
-<li>New configuration options and tests</li>
-<li>Updated test suite</li>
-<li>Updated build behavior</li>
-</ul></li>
+<li>Added MPI-4 persistent collective, partitioned communication, and
+<code>MPI_Isendrecv</code> wrappers when the selected MPI implementation provides them.</li>
+<li>Collective message histograms now retain call-time information.</li>
 </ul>
 
-<p>Please see the ChangeLog for additional changes.</p>
+<h3>Fortran and build compatibility</h3>
+
+<ul>
+<li>Added Fortran support for <code>MPI_IN_PLACE</code>, <code>MPI_BOTTOM</code>, <code>MPI_STATUS_IGNORE</code>,
+and <code>MPI_STATUSES_IGNORE</code>, including status-array translation that respects
+<code>MPI_STATUS_SIZE</code>.</li>
+<li>Improved compatibility with older MPICH releases, current GNU Fortran, and
+stricter C99 compiler checks.</li>
+<li>Configure accepts Python, Python 3, or Python 2 and supports reproducible
+wrapper generation without embedded build timestamps or hostnames.</li>
+</ul>
+
+<h3>Source locations and portability</h3>
+
+<ul>
+<li>Updated BFD support for current Binutils releases and improved source lookup
+for executables and shared objects.</li>
+<li>Configure can locate the BFD headers and library associated with the selected
+compiler wrapper.</li>
+</ul>
+
+<h3>Testing</h3>
+
+<ul>
+<li>Added Flux support for the test suite. Slurm <code>srun</code> remains the automatic
+choice when available; configure with <code>--with-launch=flux</code> to select Flux.</li>
+<li>Corrected RMA and multithreaded tests and added a standalone source-lookup
+check.</li>
+</ul>
+
+<h3>Version 3.5</h3>
+
+<p>Version 3.5 introduced multithreaded profiling support, additional MPI-I/O
+functions, updated configuration options, and an expanded test suite.</p>
+
+<p>See the ChangeLog for the dated history of these changes.</p>
 
 <h2 id="toc_4">Configuring and Building mpiP</h2>
 
@@ -376,6 +407,8 @@ kbd {
 
 <p>Several specific configuration flags can be using, as provided by <code>./configure -h</code>.
 Standard configure flags, such as CC, can be used for specifying MPI compiler wrapper scripts.</p>
+<p>Tests use Slurm's <code>srun</code> when it is available. Use <code>./configure --with-launch=flux</code>
+to run the test suite with Flux instead.</p>
 
 <h3 id="toc_7">Build Make Targets</h3>
 
@@ -402,7 +435,6 @@ Standard configure flags, such as CC, can be used for specifying MPI compiler wr
 </tr>
 </tbody>
 </table>
-
 <h2 id="toc_8">Using mpiP</h2>
 
 <p>Using mpiP is very simple. Because it gathers MPI information through the MPI profiling layer, mpiP is a link time library. That is, you don&#39;t have to recompile your application to use mpiP. Note that you might have to recompile to include the &#39;-g&#39; option. This is important if you want mpiP to decode the PC to a source code filename and line number automatically. mpiP will work without -g, but mileage may vary.</p>
@@ -535,10 +567,10 @@ $ setenv MPIP &quot;-t 10.0 -k 2&quot; (csh)</code></pre></div>
 
 <div><pre><code class="language-none">@ mpiP
 @ Command : /g/g0/chcham/mpiP/Testing/tests/AMG/./test/amg -P 4 2 2 -n 50 50 50
-@ Version                  : 3.5.0
-@ MPIP Build date          : Oct 20 2020, 18:22:06
-@ Start time               : 2020 10 20 18:25:41
-@ Stop time                : 2020 10 20 18:25:45
+@ Version                  : 3.6.0
+@ MPIP Build date          : Oct  4 2026, 17:26:27
+@ Start time               : 2026 10 04 17:26:30
+@ Stop time                : 2026 10 04 17:26:34
 @ Timer Used               : PMPI_Wtime
 @ MPIP env var             : -k3,-y
 @ Collector Rank           : 0
@@ -842,12 +874,20 @@ File_read            1    *      40        64        64        64      2560</cod
 
 <div><pre><code class="language-none">MPI_Accumulate
 MPI_Allgather
+MPI_Allgather_init
 MPI_Allgatherv
+MPI_Allgatherv_init
 MPI_Allreduce
+MPI_Allreduce_init
 MPI_Alltoall
+MPI_Alltoall_init
 MPI_Alltoallv
+MPI_Alltoallv_init
+MPI_Alltoallw_init
 MPI_Barrier
+MPI_Barrier_init
 MPI_Bcast
+MPI_Bcast_init
 MPI_Bsend
 MPI_Bsend_init
 MPI_Buffer_attach
@@ -885,6 +925,7 @@ MPI_Dims_create
 MPI_Errhandler_free
 MPI_Error_class
 MPI_Error_string
+MPI_Exscan_init
 MPI_Fetch_and_op
 MPI_File_close
 MPI_File_delete
@@ -913,7 +954,9 @@ MPI_File_write_at_all
 MPI_Finalize
 MPI_Finalized
 MPI_Gather
+MPI_Gather_init
 MPI_Gatherv
+MPI_Gatherv_init
 MPI_Get
 MPI_Get_accumulate
 MPI_Get_address
@@ -966,18 +1009,29 @@ MPI_Iscan
 MPI_Iscatter
 MPI_Iscatterv
 MPI_Isend
+MPI_Isendrecv
+MPI_Isendrecv_replace
 MPI_Issend
 MPI_Op_create
 MPI_Op_free
 MPI_Pack
 MPI_Pack_size
+MPI_Parrived
+MPI_Pready
+MPI_Pready_list
+MPI_Pready_range
+MPI_Precv_init
+MPI_Psend_init
 MPI_Probe
 MPI_Put
 MPI_Raccumulate
 MPI_Recv
 MPI_Recv_init
 MPI_Reduce
+MPI_Reduce_init
 MPI_Reduce_scatter
+MPI_Reduce_scatter_block_init
+MPI_Reduce_scatter_init
 MPI_Request_free
 MPI_Rget
 MPI_Rget_accumulate
@@ -985,8 +1039,11 @@ MPI_Rput
 MPI_Rsend
 MPI_Rsend_init
 MPI_Scan
+MPI_Scan_init
 MPI_Scatter
+MPI_Scatter_init
 MPI_Scatterv
+MPI_Scatterv_init
 MPI_Send
 MPI_Send_init
 MPI_Sendrecv

@@ -1,4 +1,4 @@
-# mpiP 3.5
+# mpiP 3.6
 A light-weight MPI profiler.
 
 ## Introduction
@@ -8,16 +8,45 @@ mpiP is a light-weight profiling library for MPI applications. Because it only c
 The current version of mpiP can be accessed at [https://github.com/LLNL/mpiP/releases/latest](https://github.com/LLNL/mpiP/releases/latest).
 
 ## New Features & Bug Fixes
-Version 3.5 includes several new features, including
 
-- Multi-threaded support
-- Additional MPI-IO functions
-- Various updates including
-  - New configuration options and tests
-  - Updated test suite
-  - Updated build behavior
+Version 3.6 includes the following changes since version 3.5.
 
-Please see the ChangeLog for additional changes.
+### MPI coverage
+
+- Added MPI-4 persistent collective, partitioned communication, and
+  `MPI_Isendrecv` wrappers when the selected MPI implementation provides them.
+- Collective message histograms now retain call-time information.
+
+### Fortran and build compatibility
+
+- Added Fortran support for `MPI_IN_PLACE`, `MPI_BOTTOM`, `MPI_STATUS_IGNORE`,
+  and `MPI_STATUSES_IGNORE`, including status-array translation that respects
+  `MPI_STATUS_SIZE`.
+- Improved compatibility with older MPICH releases, current GNU Fortran, and
+  stricter C99 compiler checks.
+- Configure accepts Python, Python 3, or Python 2 and supports reproducible
+  wrapper generation without embedded build timestamps or hostnames.
+
+### Source locations and portability
+
+- Updated BFD support for current Binutils releases and improved source lookup
+  for executables and shared objects.
+- Configure can locate the BFD headers and library associated with the selected
+  compiler wrapper.
+
+### Testing
+
+- Added Flux support for the test suite. Slurm `srun` remains the automatic
+  choice when available; configure with `--with-launch=flux` to select Flux.
+- Corrected RMA and multithreaded tests and added a standalone source-lookup
+  check.
+
+### Version 3.5
+
+Version 3.5 introduced multithreaded profiling support, additional MPI-I/O
+functions, updated configuration options, and an expanded test suite.
+
+See the ChangeLog for the dated history of these changes.
 
 ##  Configuring and Building mpiP
 ### Dependencies
@@ -147,4 +176,3 @@ University of California.  The views and opinions of authors expressed
 herein do not necessarily state or reflect those of the United States
 Government or the University of California, and shall not be used for
 advertising or product endorsement purposes.
-

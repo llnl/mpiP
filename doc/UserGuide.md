@@ -1,4 +1,4 @@
-# mpiP 3.5
+# mpiP 3.6
 A light-weight MPI profiler.
 
 ## Introduction
@@ -8,17 +8,45 @@ mpiP is a light-weight profiling library for MPI applications. Because it only c
 The current version of mpiP can be accessed at [https://github.com/LLNL/mpiP/releases/latest](https://github.com/LLNL/mpiP/releases/latest).
 
 ## New Features & Bug Fixes
-Version 3.5 includes several new features, including
 
-- Multi-threaded support
-- Additional MPI-IO functions
-- Various updates including
-  - New configuration options and tests
-  - Updated test suite
-  - Updated build behavior
+Version 3.6 includes the following changes since version 3.5.
 
+### MPI coverage
 
-Please see the ChangeLog for additional changes.
+- Added MPI-4 persistent collective, partitioned communication, and
+  `MPI_Isendrecv` wrappers when the selected MPI implementation provides them.
+- Collective message histograms now retain call-time information.
+
+### Fortran and build compatibility
+
+- Added Fortran support for `MPI_IN_PLACE`, `MPI_BOTTOM`, `MPI_STATUS_IGNORE`,
+  and `MPI_STATUSES_IGNORE`, including status-array translation that respects
+  `MPI_STATUS_SIZE`.
+- Improved compatibility with older MPICH releases, current GNU Fortran, and
+  stricter C99 compiler checks.
+- Configure accepts Python, Python 3, or Python 2 and supports reproducible
+  wrapper generation without embedded build timestamps or hostnames.
+
+### Source locations and portability
+
+- Updated BFD support for current Binutils releases and improved source lookup
+  for executables and shared objects.
+- Configure can locate the BFD headers and library associated with the selected
+  compiler wrapper.
+
+### Testing
+
+- Added Flux support for the test suite. Slurm `srun` remains the automatic
+  choice when available; configure with `--with-launch=flux` to select Flux.
+- Corrected RMA and multithreaded tests and added a standalone source-lookup
+  check.
+
+### Version 3.5
+
+Version 3.5 introduced multithreaded profiling support, additional MPI-I/O
+functions, updated configuration options, and an expanded test suite.
+
+See the ChangeLog for the dated history of these changes.
 
 
 
@@ -93,10 +121,10 @@ Header information provides basic information about your performance experiment.
 ```
 @ mpiP
 @ Command : /g/g0/chcham/mpiP/Testing/tests/AMG/./test/amg -P 4 2 2 -n 50 50 50
-@ Version                  : 3.5.0
-@ MPIP Build date          : Oct 20 2020, 18:22:06
-@ Start time               : 2020 10 20 18:25:41
-@ Stop time                : 2020 10 20 18:25:45
+@ Version                  : 3.6.0
+@ MPIP Build date          : Oct  4 2026, 17:26:27
+@ Start time               : 2026 10 04 17:26:30
+@ Stop time                : 2026 10 04 17:26:34
 @ Timer Used               : PMPI_Wtime
 @ MPIP env var             : -k3,-y
 @ Collector Rank           : 0
@@ -324,12 +352,20 @@ for(i=1; i < 10; i++)
 ```
 MPI_Accumulate
 MPI_Allgather
+MPI_Allgather_init
 MPI_Allgatherv
+MPI_Allgatherv_init
 MPI_Allreduce
+MPI_Allreduce_init
 MPI_Alltoall
+MPI_Alltoall_init
 MPI_Alltoallv
+MPI_Alltoallv_init
+MPI_Alltoallw_init
 MPI_Barrier
+MPI_Barrier_init
 MPI_Bcast
+MPI_Bcast_init
 MPI_Bsend
 MPI_Bsend_init
 MPI_Buffer_attach
@@ -367,6 +403,7 @@ MPI_Dims_create
 MPI_Errhandler_free
 MPI_Error_class
 MPI_Error_string
+MPI_Exscan_init
 MPI_Fetch_and_op
 MPI_File_close
 MPI_File_delete
@@ -395,7 +432,9 @@ MPI_File_write_at_all
 MPI_Finalize
 MPI_Finalized
 MPI_Gather
+MPI_Gather_init
 MPI_Gatherv
+MPI_Gatherv_init
 MPI_Get
 MPI_Get_accumulate
 MPI_Get_address
@@ -448,18 +487,29 @@ MPI_Iscan
 MPI_Iscatter
 MPI_Iscatterv
 MPI_Isend
+MPI_Isendrecv
+MPI_Isendrecv_replace
 MPI_Issend
 MPI_Op_create
 MPI_Op_free
 MPI_Pack
 MPI_Pack_size
+MPI_Parrived
+MPI_Pready
+MPI_Pready_list
+MPI_Pready_range
+MPI_Precv_init
+MPI_Psend_init
 MPI_Probe
 MPI_Put
 MPI_Raccumulate
 MPI_Recv
 MPI_Recv_init
 MPI_Reduce
+MPI_Reduce_init
 MPI_Reduce_scatter
+MPI_Reduce_scatter_block_init
+MPI_Reduce_scatter_init
 MPI_Request_free
 MPI_Rget
 MPI_Rget_accumulate
@@ -467,8 +517,11 @@ MPI_Rput
 MPI_Rsend
 MPI_Rsend_init
 MPI_Scan
+MPI_Scan_init
 MPI_Scatter
+MPI_Scatter_init
 MPI_Scatterv
+MPI_Scatterv_init
 MPI_Send
 MPI_Send_init
 MPI_Sendrecv
@@ -614,4 +667,3 @@ University of California.  The views and opinions of authors expressed
 herein do not necessarily state or reflect those of the United States
 Government or the University of California, and shall not be used for
 advertising or product endorsement purposes.
-

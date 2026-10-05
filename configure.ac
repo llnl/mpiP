@@ -5,7 +5,7 @@ dnl These two lines disable the cache.
 define([AC_CACHE_LOAD], )
 define([AC_CACHE_SAVE], )
 
-AC_INIT([mpiP],[3.5])
+AC_INIT([mpiP],[3.6])
 AC_PREREQ(2.61)
 AC_CONFIG_HEADER(mpiPconfig.h)
 AC_CONFIG_AUX_DIR(bin)

@@ -1,3 +1,30 @@
+- 2026-10-04 Release version 3.6.
+- 2026-10-04 Added Flux test launching. Configure prefers Slurm `srun` when it
+  is available and accepts `--with-launch=flux` to select Flux. C, C++, and
+  Fortran test drivers use `flux run -n`.
+- 2026-10-04 Improved source lookup and BFD configuration. Configure locates
+  BFD headers and libraries through the selected compiler wrapper; lookup keeps
+  a symbol table for each executable/shared object, uses dynamic symbols when
+  needed, and reports executable-open failures. Added a standalone source
+  lookup test.
+- 2026-10-04 Improved Fortran support. Status-array translation now respects
+  `MPI_STATUS_SIZE`; GNU Fortran test builds accept legacy `mpif.h` argument
+  patterns; and compiler detection is more reliable.
+- 2026-10-04 Corrected RMA and multithreaded tests, point-to-point statistics
+  reset, and multithreaded worker return handling. Added runtime library paths
+  for test executables.
+- 2025-04-15 Updated BFD support for Binutils 2.37 and later.
+- 2025-04-09 Added reproducible wrapper generation without embedded build time
+  or hostname information.
+- 2025-01-29 Added Fortran support for `MPI_IN_PLACE`, `MPI_BOTTOM`,
+  `MPI_STATUS_IGNORE`, and `MPI_STATUSES_IGNORE`; updated the Fortran linkage
+  probe for C99 compilers.
+- 2024-02-02 Corrected shared-object callsite stack traceback and source
+  lookup handling.
+- 2023-09-28 Added MPI-4 persistent collective, partitioned communication,
+  and `MPI_Isendrecv` wrappers, with configure checks for available MPI APIs.
+- 2022-11-25 Updated configure to find and use Python 3, Python 2, or Python.
+- 2021-08-20 Updated collective histograms to record call-time information.
 - 2020-10-20 Update deprecated functions. 
 - 2020-10-20 Fix ARM typo and add LSE configure test. 
 - 2020-10-19 Correct pt2pt histogram reporting check. 
