@@ -1,0 +1,4 @@
+checkOutput "Psend_init" "Report check:"
+checkOutput "Precv_init" "Report check:"
+checkOutput "Pready" "Report check:"
+checkOutput "Parrived" "Report check:"

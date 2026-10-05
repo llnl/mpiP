@@ -1,0 +1,10 @@
+set test_title "19-pcoll.exe: verify persistent collective interposition"
+set test "19-pcoll.exe"
+set procs 2
+set source_check_file "testing/19-pcoll.src"
+
+source "testing/test_template.tcl"
+
+checkSource
+
+send_user "\n\n"

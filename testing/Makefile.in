@@ -5,6 +5,9 @@
 srcdir=@srcdir@
 include_mpi_io_tests=@ENABLE_MPI_IO@
 include_mpi_rma_tests=@ENABLE_MPI_RMA@
+include_mpi_pcoll_tests=@ENABLE_MPI_PERSISTENTCOLLECTIVES@
+include_mpi_isendrecv_tests=@ENABLE_MPI_ISENDRECV@
+include_mpi_partitioned_tests=@ENABLE_MPI_PARTITIONED@
 VPATH = $(srcdir)
 
 include ../Defs.mak
@@ -48,6 +51,18 @@ endif
 
 ifeq (${include_mpi_rma_tests},yes)
 CSRCS += 17-rma.c
+endif
+
+ifeq (${include_mpi_pcoll_tests},yes)
+CSRCS += 19-pcoll.c
+endif
+
+ifeq (${include_mpi_isendrecv_tests},yes)
+CSRCS += 20-isendrecv.c
+endif
+
+ifeq (${include_mpi_partitioned_tests},yes)
+CSRCS += 21-partitioned.c
 endif
 
 FSRCS =	0-simplef.f sweep-ops.f sweep-ops-stack.f 16-waitallf.f 

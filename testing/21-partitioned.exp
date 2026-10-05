@@ -1,0 +1,10 @@
+set test_title "21-partitioned.exe: verify partitioned communication interposition"
+set test "21-partitioned.exe"
+set procs 2
+set source_check_file "testing/21-partitioned.src"
+
+source "testing/test_template.tcl"
+
+checkSource
+
+send_user "\n\n"

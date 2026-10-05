@@ -1,0 +1,5 @@
+checkOutput "Allreduce_init" "Report check:"
+checkOutput "Bcast_init" "Report check:"
+checkOutput "Allgather_init" "Report check:"
+checkOutput "Reduce_init" "Report check:"
+checkOutput "Barrier_init" "Report check:"

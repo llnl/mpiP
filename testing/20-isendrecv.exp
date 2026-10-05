@@ -1,0 +1,10 @@
+set test_title "20-isendrecv.exe: verify MPI_Isendrecv interposition"
+set test "20-isendrecv.exe"
+set procs 2
+set source_check_file "testing/20-isendrecv.src"
+
+source "testing/test_template.tcl"
+
+checkSource
+
+send_user "\n\n"
